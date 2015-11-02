@@ -19,13 +19,12 @@
 package scheduler
 
 import (
-	log "github.com/golang/glog"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	sched "github.com/mesos/mesos-go/scheduler"
 	"strconv"
 	"github.com/gogo/protobuf/proto"
 	util "github.com/mesos/mesos-go/mesosutil"
-	"strings"
+	"fmt"
 )
 
 type ExampleScheduler struct {
@@ -40,24 +39,29 @@ type ExampleScheduler struct {
 }
 
 func NewExampleScheduler(dockerImage string, dockerPorts string, command string, taskCount int, cpuPerTask float64, memPerTask float64) *ExampleScheduler {
-	portmappingstrings := strings.Split(dockerPorts,",")
+//	portmappingstrings := strings.Split(dockerPorts,",")
 	var ports []*mesos.ContainerInfo_DockerInfo_PortMapping
-	for _, mapping := range portmappingstrings {
-		hostPort, err := strconv.Atoi(strings.Split(mapping, ":"))[0]
-		if err != nil {
-			log.Errorf("Error parsing docker ports")
-		}
-		containerPort, err := strconv.Atoi(strings.Split(mapping, ":"))[1]
-		if err != nil {
-			log.Errorf("Error parsing docker ports")
-		}
-		ports = append(ports,
-			&mesos.ContainerInfo_DockerInfo_PortMapping{
-				HostPort: hostPort,
-				ContainerPort: containerPort,
-			},
-		)
-	}
+//	if len(portmappingstrings) > 0 {
+//		for _, mapping := range portmappingstrings {
+//			if mapping != "" {
+//				hostPort, err := strconv.Atoi(strings.Split(mapping, ":")[0])
+//				if err != nil {
+//					log.Errorf("Error parsing docker ports\nportmappingstrings: %v\n" + err.Error() + "\nsize: %v", portmappingstrings, len(portmappingstrings))
+//				}
+//				containerPort, err := strconv.Atoi(strings.Split(mapping, ":")[1])
+//				if err != nil {
+//					log.Errorf("Error parsing docker ports\n" + err.Error())
+//				}
+//				hp := uint32(hostPort)
+//				cp := uint32(containerPort)
+//				ports = append(ports,
+//					&mesos.ContainerInfo_DockerInfo_PortMapping{
+//						HostPort: &hp,
+//						ContainerPort: &cp,
+//					})
+//			}
+//		}
+//	}
 
 	return &ExampleScheduler{
 		tasksLaunched: 0,
@@ -72,15 +76,15 @@ func NewExampleScheduler(dockerImage string, dockerPorts string, command string,
 }
 
 func (sched *ExampleScheduler) Registered(driver sched.SchedulerDriver, frameworkId *mesos.FrameworkID, masterInfo *mesos.MasterInfo) {
-	log.Infoln("Scheduler Registered with Master ", masterInfo)
+	fmt.Println("Scheduler Registered with Master ", masterInfo)
 }
 
 func (sched *ExampleScheduler) Reregistered(driver sched.SchedulerDriver, masterInfo *mesos.MasterInfo) {
-	log.Infoln("Scheduler Re-Registered with Master ", masterInfo)
+	fmt.Println("Scheduler Re-Registered with Master ", masterInfo)
 }
 
 func (sched *ExampleScheduler) Disconnected(sched.SchedulerDriver) {
-	log.Infoln("Scheduler Disconnected")
+	fmt.Println("Scheduler Disconnected")
 }
 
 func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offers []*mesos.Offer) {
@@ -104,8 +108,10 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 				PortMappings: sched.DockerPorts,
 			}
 
+			containerType := mesos.ContainerInfo_DOCKER
+
 			containerInfo := &mesos.ContainerInfo{
-				Type: mesos.ContainerInfo_DOCKER,
+				Type: &containerType,
 				Docker: dockerInfo,
 			}
 
@@ -124,38 +130,38 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 				Container: containerInfo,
 				Command: commandInfo,
 			}
-			log.Infof("Prepared task: %s with offer %s for launch\n", task.GetName(), offer.Id.GetValue())
+			fmt.Printf("Prepared task: %s with offer %s for launch\n", task.GetName(), offer.Id.GetValue())
 
 			tasks = append(tasks, task)
 			remainingCpus -= sched.cpuPerTask
 			remainingMems -= sched.memPerTask
 		}
-		log.Infoln("Launching ", len(tasks), "tasks for offer", offer.Id.GetValue())
+		fmt.Println("Launching ", len(tasks), "tasks for offer", offer.Id.GetValue())
 		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, &mesos.Filters{RefuseSeconds: proto.Float64(1)})
 	}
 
 }
 
 func (sched *ExampleScheduler) StatusUpdate(driver sched.SchedulerDriver, status *mesos.TaskStatus) {
-	log.Infoln("Status update: task", status.TaskId.GetValue(), " is in state ", status.State.Enum().String())
+	fmt.Println("Status update: task", status.TaskId.GetValue(), " is in state ", status.State.Enum().String())
 }
 
 func (sched *ExampleScheduler) OfferRescinded(s sched.SchedulerDriver, id *mesos.OfferID) {
-	log.Infof("Offer '%v' rescinded.\n", *id)
+	fmt.Printf("Offer '%v' rescinded.\n", *id)
 }
 
 func (sched *ExampleScheduler) FrameworkMessage(s sched.SchedulerDriver, exId *mesos.ExecutorID, slvId *mesos.SlaveID, msg string) {
-	log.Infof("Received framework message from executor '%v' on slave '%v': %s.\n", *exId, *slvId, msg)
+	fmt.Printf("Received framework message from executor '%v' on slave '%v': %s.\n", *exId, *slvId, msg)
 }
 
 func (sched *ExampleScheduler) SlaveLost(s sched.SchedulerDriver, id *mesos.SlaveID) {
-	log.Infof("Slave '%v' lost.\n", *id)
+	fmt.Printf("Slave '%v' lost.\n", *id)
 }
 
 func (sched *ExampleScheduler) ExecutorLost(s sched.SchedulerDriver, exId *mesos.ExecutorID, slvId *mesos.SlaveID, i int) {
-	log.Infof("Executor '%v' lost on slave '%v' with exit code: %v.\n", *exId, *slvId, i)
+	fmt.Printf("Executor '%v' lost on slave '%v' with exit code: %v.\n", *exId, *slvId, i)
 }
 
 func (sched *ExampleScheduler) Error(driver sched.SchedulerDriver, err string) {
-	log.Infoln("Scheduler received error:", err)
+	fmt.Println("Scheduler received error:", err)
 }

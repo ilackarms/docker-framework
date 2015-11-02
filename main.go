@@ -29,7 +29,8 @@ import (
 	log "github.com/golang/glog"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	sched "github.com/mesos/mesos-go/scheduler"
-	. "github.com/mesosphere/mesos-framework-tutorial/scheduler"
+	"github.com/ilackarms/docker-framework/scheduler"
+	"fmt"
 )
 
 const (
@@ -45,7 +46,7 @@ var (
 	taskCount    = flag.String("task-count", "5", "Total task count to run.")
 	dockerPortMappings    = flag.String("docker-port-mappings", "", "Port Mappings for docker container; in the format 'hostport1:containerport1,hostport2:containerport2,...' ")
 	dockerImage    = flag.String("docker-image", "busybox:latest", "Docker image")
-	dockerCommand    = flag.String("cmd", "80:80", "Command entrypoint to docker container")
+	dockerCommand    = flag.String("cmd", "echo 'IT WORKED! HOLY SHIT'", "Command entrypoint to docker container")
 )
 
 func init() {
@@ -53,6 +54,8 @@ func init() {
 }
 
 func main() {
+	fmt.Printf("Started!")
+	fmt.Printf("Started docker framework...\n")
 
 	// Scheduler
 	numTasks, err := strconv.Atoi(*taskCount)
@@ -61,7 +64,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	scheduler := NewExampleScheduler(*dockerImage, *dockerPortMappings, *dockerCommand, numTasks, CPUS_PER_TASK, MEM_PER_TASK)
+	scheduler := scheduler.NewExampleScheduler(*dockerImage, *dockerPortMappings, *dockerCommand, numTasks, CPUS_PER_TASK, MEM_PER_TASK)
 	if err != nil {
 		log.Fatalf("Failed to create scheduler with error: %v\n", err)
 		os.Exit(-2)
@@ -88,6 +91,8 @@ func main() {
 		log.Fatalf("Unable to create a SchedulerDriver: %v\n", err.Error())
 		os.Exit(-3)
 	}
+
+	fmt.Printf("Framework initialized successfully. Attempting to run driver...\n")
 
 	if stat, err := driver.Run(); err != nil {
 		log.Fatalf("Framework stopped with status %s and error: %s\n", stat.String(), err.Error())
