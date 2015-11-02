@@ -26,11 +26,11 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
+	"fmt"
 	log "github.com/golang/glog"
+	"github.com/ilackarms/docker-framework/scheduler"
 	mesos "github.com/mesos/mesos-go/mesosproto"
 	sched "github.com/mesos/mesos-go/scheduler"
-	"github.com/ilackarms/docker-framework/scheduler"
-	"fmt"
 )
 
 const (
@@ -41,12 +41,12 @@ const (
 )
 
 var (
-	address      = flag.String("address", "127.0.0.1", "Binding address for artifact server")
-	master       = flag.String("master", "127.0.0.1:5050", "Master address <ip:port>")
-	taskCount    = flag.String("task-count", "5", "Total task count to run.")
-	dockerPortMappings    = flag.String("docker-port-mappings", "", "Port Mappings for docker container; in the format 'hostport1:containerport1,hostport2:containerport2,...' ")
-	dockerImage    = flag.String("docker-image", "busybox:latest", "Docker image")
-	dockerCommand    = flag.String("cmd", "echo 'IT WORKED! HOLY SHIT'", "Command entrypoint to docker container")
+	address            = flag.String("address", "127.0.0.1", "Binding address for artifact server")
+	master             = flag.String("master", "127.0.0.1:5050", "Master address <ip:port>")
+	taskCount          = flag.String("task-count", "5", "Total task count to run.")
+	dockerPortMappings = flag.String("docker-port-mappings", "", "Port Mappings for docker container; in the format 'hostport1:containerport1,hostport2:containerport2,...' ")
+	dockerImage        = flag.String("docker-image", "busybox:latest", "Docker image")
+	dockerCommand      = flag.String("cmd", "echo 'IT WORKED! HOLY SHIT'", "Command entrypoint to docker container")
 )
 
 func init() {

@@ -19,12 +19,12 @@
 package scheduler
 
 import (
+	"fmt"
+	"github.com/gogo/protobuf/proto"
 	mesos "github.com/mesos/mesos-go/mesosproto"
+	util "github.com/mesos/mesos-go/mesosutil"
 	sched "github.com/mesos/mesos-go/scheduler"
 	"strconv"
-	"github.com/gogo/protobuf/proto"
-	util "github.com/mesos/mesos-go/mesosutil"
-	"fmt"
 	"strings"
 )
 
@@ -36,12 +36,12 @@ type ExampleScheduler struct {
 	memPerTask    float64
 	DockerImage   string
 	DockerPorts   []*mesos.ContainerInfo_DockerInfo_PortMapping
-	DockerCommand   string
+	DockerCommand string
 }
 
 func NewExampleScheduler(dockerImage string, dockerPorts string, command string, taskCount int, cpuPerTask float64, memPerTask float64) *ExampleScheduler {
-	portmappingstrings := strings.Split(dockerPorts,",")
-	fmt.Printf("Processing mappings:" + dockerPorts + "\n%v", portmappingstrings)
+	portmappingstrings := strings.Split(dockerPorts, ",")
+	fmt.Printf("Processing mappings:"+dockerPorts+"\n%v", portmappingstrings)
 	var ports []*mesos.ContainerInfo_DockerInfo_PortMapping
 	if len(portmappingstrings) > 0 {
 		for _, mapping := range portmappingstrings {
@@ -49,7 +49,7 @@ func NewExampleScheduler(dockerImage string, dockerPorts string, command string,
 				fmt.Printf("Processing mapping:" + mapping)
 				hostPort, err := strconv.Atoi(strings.Split(mapping, ":")[0])
 				if err != nil {
-					fmt.Errorf("Error parsing docker ports\nportmappingstrings: %v\n" + err.Error() + "\nsize: %v", portmappingstrings, len(portmappingstrings))
+					fmt.Errorf("Error parsing docker ports\nportmappingstrings: %v\n"+err.Error()+"\nsize: %v", portmappingstrings, len(portmappingstrings))
 				}
 				containerPort, err := strconv.Atoi(strings.Split(mapping, ":")[1])
 				if err != nil {
@@ -59,7 +59,7 @@ func NewExampleScheduler(dockerImage string, dockerPorts string, command string,
 				cp := uint32(containerPort)
 				ports = append(ports,
 					&mesos.ContainerInfo_DockerInfo_PortMapping{
-						HostPort: &hp,
+						HostPort:      &hp,
 						ContainerPort: &cp,
 					})
 			}
@@ -98,7 +98,7 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 
 		var tasks []*mesos.TaskInfo
 		for sched.cpuPerTask <= remainingCpus &&
-		sched.memPerTask <= remainingMems {
+			sched.memPerTask <= remainingMems {
 
 			sched.tasksLaunched++
 
@@ -107,14 +107,14 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 			}
 
 			dockerInfo := &mesos.ContainerInfo_DockerInfo{
-				Image: &sched.DockerImage,
+				Image:        &sched.DockerImage,
 				PortMappings: sched.DockerPorts,
 			}
 
 			containerType := mesos.ContainerInfo_DOCKER
 
 			containerInfo := &mesos.ContainerInfo{
-				Type: &containerType,
+				Type:   &containerType,
 				Docker: dockerInfo,
 			}
 
@@ -123,15 +123,15 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 			}
 
 			task := &mesos.TaskInfo{
-				Name:     proto.String("go-task-" + taskId.GetValue()),
-				TaskId:   taskId,
-				SlaveId:  offer.SlaveId,
+				Name:    proto.String("go-task-" + taskId.GetValue()),
+				TaskId:  taskId,
+				SlaveId: offer.SlaveId,
 				Resources: []*mesos.Resource{
 					util.NewScalarResource("cpus", sched.cpuPerTask),
 					util.NewScalarResource("mem", sched.memPerTask),
 				},
 				Container: containerInfo,
-				Command: commandInfo,
+				Command:   commandInfo,
 			}
 			fmt.Printf("Prepared task: %s with offer %s for launch\n", task.GetName(), offer.Id.GetValue())
 
