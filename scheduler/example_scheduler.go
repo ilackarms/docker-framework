@@ -25,6 +25,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 	util "github.com/mesos/mesos-go/mesosutil"
 	"fmt"
+	"strings"
 )
 
 type ExampleScheduler struct {
@@ -39,29 +40,31 @@ type ExampleScheduler struct {
 }
 
 func NewExampleScheduler(dockerImage string, dockerPorts string, command string, taskCount int, cpuPerTask float64, memPerTask float64) *ExampleScheduler {
-//	portmappingstrings := strings.Split(dockerPorts,",")
+	portmappingstrings := strings.Split(dockerPorts,",")
+	fmt.Printf("Processing mappings:" + dockerPorts + "\n%v", portmappingstrings)
 	var ports []*mesos.ContainerInfo_DockerInfo_PortMapping
-//	if len(portmappingstrings) > 0 {
-//		for _, mapping := range portmappingstrings {
-//			if mapping != "" {
-//				hostPort, err := strconv.Atoi(strings.Split(mapping, ":")[0])
-//				if err != nil {
-//					log.Errorf("Error parsing docker ports\nportmappingstrings: %v\n" + err.Error() + "\nsize: %v", portmappingstrings, len(portmappingstrings))
-//				}
-//				containerPort, err := strconv.Atoi(strings.Split(mapping, ":")[1])
-//				if err != nil {
-//					log.Errorf("Error parsing docker ports\n" + err.Error())
-//				}
-//				hp := uint32(hostPort)
-//				cp := uint32(containerPort)
-//				ports = append(ports,
-//					&mesos.ContainerInfo_DockerInfo_PortMapping{
-//						HostPort: &hp,
-//						ContainerPort: &cp,
-//					})
-//			}
-//		}
-//	}
+	if len(portmappingstrings) > 0 {
+		for _, mapping := range portmappingstrings {
+			if mapping != "" {
+				fmt.Printf("Processing mapping:" + mapping)
+				hostPort, err := strconv.Atoi(strings.Split(mapping, ":")[0])
+				if err != nil {
+					fmt.Errorf("Error parsing docker ports\nportmappingstrings: %v\n" + err.Error() + "\nsize: %v", portmappingstrings, len(portmappingstrings))
+				}
+				containerPort, err := strconv.Atoi(strings.Split(mapping, ":")[1])
+				if err != nil {
+					fmt.Errorf("Error parsing docker ports\n" + err.Error())
+				}
+				hp := uint32(hostPort)
+				cp := uint32(containerPort)
+				ports = append(ports,
+					&mesos.ContainerInfo_DockerInfo_PortMapping{
+						HostPort: &hp,
+						ContainerPort: &cp,
+					})
+			}
+		}
+	}
 
 	return &ExampleScheduler{
 		tasksLaunched: 0,
