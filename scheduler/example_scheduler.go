@@ -98,7 +98,10 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 
 		var tasks []*mesos.TaskInfo
 		for sched.cpuPerTask <= remainingCpus &&
-			sched.memPerTask <= remainingMems {
+			sched.memPerTask <= remainingMems && 
+			sched.tasksLaunched < sched.totalTasks {
+
+			fmt.Printf("Tasks launched: %v Total tasks: %v\n", sched.tasksLaunched, sched.totalTasks)
 
 			sched.tasksLaunched++
 
