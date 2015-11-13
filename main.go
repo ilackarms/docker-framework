@@ -34,8 +34,8 @@ import (
 )
 
 const (
-	CPUS_PER_TASK       = 1
-	MEM_PER_TASK        = 128
+	CPUS_PER_TASK       = 0.1
+	MEM_PER_TASK        = 16
 	defaultArtifactPort = 12345
 	defaultImage        = "http://www.gabrielhartmann.com/Things/Plants/i-W2N2Rxp/0/O/DSCF6636.jpg"
 )

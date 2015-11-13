@@ -142,7 +142,7 @@ func (sched *ExampleScheduler) ResourceOffers(driver sched.SchedulerDriver, offe
 			remainingCpus -= sched.cpuPerTask
 			remainingMems -= sched.memPerTask
 		}
-		fmt.Println("Launching ", len(tasks), "tasks for offer", offer.Id.GetValue())
+//		fmt.Println("Launching ", len(tasks), "tasks for offer", offer.Id.GetValue())
 		driver.LaunchTasks([]*mesos.OfferID{offer.Id}, tasks, &mesos.Filters{RefuseSeconds: proto.Float64(1)})
 	}
 
